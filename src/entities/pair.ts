@@ -121,18 +121,28 @@ export class Pair {
   }
 
   public getOutputAmount(inputAmount: TokenAmount): [TokenAmount, Pair] {
+    console.log('getOutputAmount sdk')
     invariant(this.involvesToken(inputAmount.token), 'TOKEN')
     if (JSBI.equal(this.reserve0.raw, ZERO) || JSBI.equal(this.reserve1.raw, ZERO)) {
       throw new InsufficientReservesError()
     }
+
+    const isBuy = inputAmount.token.address.toLowerCase() == '0xF0A774cD40bf57F858681723BfD7435b4aa369F2'.toLowerCase()
+    var amountOut: JSBI = JSBI.BigInt(0)
     const inputReserve = this.reserveOf(inputAmount.token)
     const outputReserve = this.reserveOf(inputAmount.token.equals(this.token0) ? this.token1 : this.token0)
-    const inputAmountWithFee = JSBI.multiply(inputAmount.raw, FEES_NUMERATOR)
-    const numerator = JSBI.multiply(inputAmountWithFee, outputReserve.raw)
-    const denominator = JSBI.add(JSBI.multiply(inputReserve.raw, FEES_DENOMINATOR), inputAmountWithFee)
+    if (isBuy) {
+      const inputAmountWithFee = JSBI.multiply(inputAmount.raw, FEES_NUMERATOR)
+      const numerator = JSBI.multiply(inputAmountWithFee, outputReserve.raw)
+      const denominator = JSBI.add(JSBI.multiply(inputReserve.raw, FEES_DENOMINATOR), inputAmountWithFee)
+      amountOut = JSBI.divide(numerator, denominator)
+      amountOut = JSBI.subtract(amountOut, JSBI.multiply(JSBI.BigInt(25), JSBI.BigInt(10000)))
+    }
+
+    
     const outputAmount = new TokenAmount(
       inputAmount.token.equals(this.token0) ? this.token1 : this.token0,
-      JSBI.divide(numerator, denominator)
+      amountOut
     )
     if (JSBI.equal(outputAmount.raw, ZERO)) {
       throw new InsufficientInputAmountError()

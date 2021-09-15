@@ -808,18 +808,27 @@ var Pair = /*#__PURE__*/function () {
   };
 
   _proto.getOutputAmount = function getOutputAmount(inputAmount) {
+    console.log('getOutputAmount sdk');
     !this.involvesToken(inputAmount.token) ?  invariant(false, 'TOKEN')  : void 0;
 
     if (JSBI.equal(this.reserve0.raw, ZERO) || JSBI.equal(this.reserve1.raw, ZERO)) {
       throw new InsufficientReservesError();
     }
 
+    var isBuy = inputAmount.token.address.toLowerCase() == '0xF0A774cD40bf57F858681723BfD7435b4aa369F2'.toLowerCase();
+    var amountOut = JSBI.BigInt(0);
     var inputReserve = this.reserveOf(inputAmount.token);
     var outputReserve = this.reserveOf(inputAmount.token.equals(this.token0) ? this.token1 : this.token0);
-    var inputAmountWithFee = JSBI.multiply(inputAmount.raw, FEES_NUMERATOR);
-    var numerator = JSBI.multiply(inputAmountWithFee, outputReserve.raw);
-    var denominator = JSBI.add(JSBI.multiply(inputReserve.raw, FEES_DENOMINATOR), inputAmountWithFee);
-    var outputAmount = new TokenAmount(inputAmount.token.equals(this.token0) ? this.token1 : this.token0, JSBI.divide(numerator, denominator));
+
+    if (isBuy) {
+      var inputAmountWithFee = JSBI.multiply(inputAmount.raw, FEES_NUMERATOR);
+      var numerator = JSBI.multiply(inputAmountWithFee, outputReserve.raw);
+      var denominator = JSBI.add(JSBI.multiply(inputReserve.raw, FEES_DENOMINATOR), inputAmountWithFee);
+      amountOut = JSBI.divide(numerator, denominator);
+      amountOut = JSBI.subtract(amountOut, JSBI.multiply(JSBI.BigInt(25), JSBI.BigInt(10000)));
+    }
+
+    var outputAmount = new TokenAmount(inputAmount.token.equals(this.token0) ? this.token1 : this.token0, amountOut);
 
     if (JSBI.equal(outputAmount.raw, ZERO)) {
       throw new InsufficientInputAmountError();
