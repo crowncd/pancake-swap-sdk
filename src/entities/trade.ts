@@ -19,9 +19,14 @@ import { currencyEquals, Token, WETH } from './token'
  * @param outputAmount the output amount of the trade
  */
 function computePriceImpact(midPrice: Price, inputAmount: CurrencyAmount, outputAmount: CurrencyAmount): Percent {
+  console.log('sdk computePriceImpact')
   const exactQuote = midPrice.raw.multiply(inputAmount.raw)
+  console.log(`inputAmount.raw ${inputAmount.raw.toString()}`)
+  console.log(`outputAmount ${outputAmount.raw.toString()}`)
   // calculate slippage := (exactQuote - outputAmount) / exactQuote
   const slippage = exactQuote.subtract(outputAmount.raw).divide(exactQuote)
+  console.log(`slippage.numerator ${slippage.numerator.toString()}`)
+  console.log(`slippage.denominator ${slippage.denominator.toString()}`)
   return new Percent(slippage.numerator, slippage.denominator)
 }
 
@@ -195,6 +200,7 @@ export class Trade {
       this.outputAmount.raw
     )
     this.nextMidPrice = Price.fromRoute(new Route(nextPairs, route.input))
+    console.log('____ Trade init')
     this.priceImpact = computePriceImpact(route.midPrice, this.inputAmount, this.outputAmount)
   }
 

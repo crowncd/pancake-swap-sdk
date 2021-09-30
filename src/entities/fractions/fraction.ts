@@ -34,6 +34,7 @@ export class Fraction {
 
   // performs floor division
   public get quotient(): JSBI {
+    console.log(`quotient ${this.numerator.toString()} ${this.denominator.toString()}`)
     return JSBI.divide(this.numerator, this.denominator)
   }
 

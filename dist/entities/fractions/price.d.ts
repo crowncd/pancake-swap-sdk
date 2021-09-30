@@ -14,6 +14,8 @@ export declare class Price extends Fraction {
     invert(): Price;
     multiply(other: Price): Price;
     quote(currencyAmount: CurrencyAmount): CurrencyAmount;
+    quote1(currencyAmount: CurrencyAmount): CurrencyAmount;
+    quote2(currencyAmount: CurrencyAmount): CurrencyAmount;
     toSignificant(significantDigits?: number, format?: object, rounding?: Rounding): string;
     toFixed(decimalPlaces?: number, format?: object, rounding?: Rounding): string;
 }

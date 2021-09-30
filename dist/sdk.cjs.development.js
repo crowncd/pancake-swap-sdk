@@ -35,8 +35,8 @@ var _SOLIDITY_TYPE_MAXIMA;
   Rounding[Rounding["ROUND_UP"] = 2] = "ROUND_UP";
 })(exports.Rounding || (exports.Rounding = {}));
 
-var FACTORY_ADDRESS = '0x1050A12421364324FbE721734F69d44ff5e183a1';
-var INIT_CODE_HASH = '0x71a42f6ebb3b3b584b387470a9eae188f43362fedb3a277d61b39b326dccda19';
+var FACTORY_ADDRESS = '0x081e17Fe93428AdE479275EfC590E27788E8Ed51';
+var INIT_CODE_HASH = '0x3bfed258db9e1b73c060ad5307cc4a46a38e2c21d7663fe077bd7e3845b3225e';
 var MINIMUM_LIQUIDITY = /*#__PURE__*/JSBI.BigInt(1000); // exports for internal consumption
 
 var ZERO = /*#__PURE__*/JSBI.BigInt(0);
@@ -46,7 +46,6 @@ var THREE = /*#__PURE__*/JSBI.BigInt(3);
 var FIVE = /*#__PURE__*/JSBI.BigInt(5);
 var TEN = /*#__PURE__*/JSBI.BigInt(10);
 var _100 = /*#__PURE__*/JSBI.BigInt(100);
-var FEES_NUMERATOR = /*#__PURE__*/JSBI.BigInt(9975);
 var FEES_DENOMINATOR = /*#__PURE__*/JSBI.BigInt(10000);
 var SolidityType;
 
@@ -544,6 +543,7 @@ var Fraction = /*#__PURE__*/function () {
   _createClass(Fraction, [{
     key: "quotient",
     get: function get() {
+      console.log("quotient " + this.numerator.toString() + " " + this.denominator.toString());
       return JSBI.divide(this.numerator, this.denominator);
     } // remainder after floor division
 
@@ -714,7 +714,33 @@ var Price = /*#__PURE__*/function (_Fraction) {
     !currencyEquals(currencyAmount.currency, this.baseCurrency) ?  invariant(false, 'TOKEN')  : void 0;
 
     if (this.quoteCurrency instanceof Token) {
+      console.log("sdk quote currencyAmount.raw");
+      console.log(currencyAmount.raw.toString());
       return new TokenAmount(this.quoteCurrency, _Fraction.prototype.multiply.call(this, currencyAmount.raw).quotient);
+    }
+
+    return CurrencyAmount.ether(_Fraction.prototype.multiply.call(this, currencyAmount.raw).quotient);
+  };
+
+  _proto.quote1 = function quote1(currencyAmount) {
+    !currencyEquals(currencyAmount.currency, this.baseCurrency) ?  invariant(false, 'TOKEN')  : void 0;
+
+    if (this.quoteCurrency instanceof Token) {
+      console.log("sdk quote currencyAmount.raw");
+      console.log(currencyAmount.raw.toString());
+      return new TokenAmount(this.quoteCurrency, _Fraction.prototype.multiply.call(this, JSBI.divide(currencyAmount.raw, JSBI.BigInt(2))).quotient);
+    }
+
+    return CurrencyAmount.ether(_Fraction.prototype.multiply.call(this, currencyAmount.raw).quotient);
+  };
+
+  _proto.quote2 = function quote2(currencyAmount) {
+    !currencyEquals(currencyAmount.currency, this.baseCurrency) ?  invariant(false, 'TOKEN')  : void 0;
+
+    if (this.quoteCurrency instanceof Token) {
+      console.log("sdk quote currencyAmount.raw");
+      console.log(currencyAmount.raw.toString());
+      return new TokenAmount(this.quoteCurrency, _Fraction.prototype.multiply.call(this, JSBI.multiply(currencyAmount.raw, JSBI.BigInt(2))).quotient);
     }
 
     return CurrencyAmount.ether(_Fraction.prototype.multiply.call(this, currencyAmount.raw).quotient);
@@ -819,15 +845,35 @@ var Pair = /*#__PURE__*/function () {
     var amountOut = JSBI.BigInt(0);
     var inputReserve = this.reserveOf(inputAmount.token);
     var outputReserve = this.reserveOf(inputAmount.token.equals(this.token0) ? this.token1 : this.token0);
+    console.log("inputAmount.raw " + inputAmount.raw.toString());
+    console.log("inputReserve.raw " + inputReserve.raw.toString());
+    console.log("outputReserve.raw " + outputReserve.raw.toString());
 
     if (isBuy) {
-      var inputAmountWithFee = JSBI.multiply(inputAmount.raw, FEES_NUMERATOR);
+      // uint amountInWithFee = amountIn.mul(uint(10000));
+      // uint numerator = amountInWithFee.mul(reserveOut);
+      // uint denominator = reserveIn.mul(uint(10000)).add(amountInWithFee);
+      // amountOut = (numerator / denominator).sub(amountOut.mul(swapFee)/10000);
+      var inputAmountWithFee = JSBI.multiply(inputAmount.raw, FEES_DENOMINATOR);
       var numerator = JSBI.multiply(inputAmountWithFee, outputReserve.raw);
       var denominator = JSBI.add(JSBI.multiply(inputReserve.raw, FEES_DENOMINATOR), inputAmountWithFee);
       amountOut = JSBI.divide(numerator, denominator);
-      amountOut = JSBI.subtract(amountOut, JSBI.multiply(JSBI.BigInt(25), JSBI.BigInt(10000)));
+      amountOut = JSBI.subtract(amountOut, JSBI.divide(JSBI.BigInt(25), FEES_DENOMINATOR));
+    } else {
+      // uint amountInWithFee = amountIn.mul(uint(10000).sub(swapFee));
+      // uint numerator = amountInWithFee.mul(reserveOut);
+      // uint denominator = reserveIn.mul(10000).add(amountInWithFee);
+      // amountOut = numerator / denominator;
+      var _inputAmountWithFee = JSBI.multiply(inputAmount.raw, JSBI.subtract(FEES_DENOMINATOR, JSBI.BigInt(525)));
+
+      var _numerator = JSBI.multiply(_inputAmountWithFee, outputReserve.raw);
+
+      var _denominator = JSBI.add(JSBI.multiply(inputReserve.raw, FEES_DENOMINATOR), _inputAmountWithFee);
+
+      amountOut = JSBI.divide(_numerator, _denominator);
     }
 
+    console.log("amountOut " + amountOut.toString());
     var outputAmount = new TokenAmount(inputAmount.token.equals(this.token0) ? this.token1 : this.token0, amountOut);
 
     if (JSBI.equal(outputAmount.raw, ZERO)) {
@@ -838,6 +884,7 @@ var Pair = /*#__PURE__*/function () {
   };
 
   _proto.getInputAmount = function getInputAmount(outputAmount) {
+    console.log('getInputAmount');
     !this.involvesToken(outputAmount.token) ?  invariant(false, 'TOKEN')  : void 0;
 
     if (JSBI.equal(this.reserve0.raw, ZERO) || JSBI.equal(this.reserve1.raw, ZERO) || JSBI.greaterThanOrEqual(outputAmount.raw, this.reserveOf(outputAmount.token).raw)) {
@@ -846,9 +893,42 @@ var Pair = /*#__PURE__*/function () {
 
     var outputReserve = this.reserveOf(outputAmount.token);
     var inputReserve = this.reserveOf(outputAmount.token.equals(this.token0) ? this.token1 : this.token0);
-    var numerator = JSBI.multiply(JSBI.multiply(inputReserve.raw, outputAmount.raw), FEES_DENOMINATOR);
-    var denominator = JSBI.multiply(JSBI.subtract(outputReserve.raw, outputAmount.raw), FEES_NUMERATOR);
-    var inputAmount = new TokenAmount(outputAmount.token.equals(this.token0) ? this.token1 : this.token0, JSBI.add(JSBI.divide(numerator, denominator), ONE));
+    var isBuy = inputReserve.token.address.toLowerCase() == '0xF0A774cD40bf57F858681723BfD7435b4aa369F2'.toLowerCase();
+    console.log("outputAmount " + outputAmount.token.address);
+    console.log("this.token0 " + this.token0.address);
+    console.log("this.token1 " + this.token1.address);
+    console.log("outputAmount.raw " + outputAmount.raw.toString());
+    console.log("inputReserve.raw " + inputReserve.raw.toString());
+    console.log("outputReserve.raw " + outputReserve.raw.toString());
+    var amountIn = ONE;
+
+    if (isBuy) {
+      // uint numerator = reserveIn.mul(amountOut).mul(uint(10000));
+      // uint denominator = reserveOut.sub(amountOut).mul(uint(10000));
+      // amountIn = (numerator / denominator).sub(amountOut.mul(swapFee)/10000);
+      var numerator = JSBI.multiply(JSBI.multiply(inputReserve.raw, outputAmount.raw), FEES_DENOMINATOR);
+      var denominator = JSBI.multiply(JSBI.subtract(outputReserve.raw, outputAmount.raw), FEES_DENOMINATOR);
+      var fee = JSBI.divide(JSBI.multiply(JSBI.BigInt(25), outputAmount.raw), JSBI.BigInt(FEES_DENOMINATOR));
+      amountIn = JSBI.divide(numerator, denominator);
+      amountIn = JSBI.subtract(amountIn, fee);
+    } else {
+      // uint numerator = reserveOut.mul(amountOut).mul(10000);
+      // uint denominator = reserveIn.add(amountOut).mul(uint(10000).add(swapFee));
+      // amountIn = (numerator / denominator);
+      var _numerator2 = JSBI.multiply(inputReserve.raw, outputAmount.raw);
+
+      var _denominator2 = JSBI.add(JSBI.add(outputReserve.raw, outputAmount.raw), JSBI.BigInt(525));
+
+      amountIn = JSBI.divide(_numerator2, _denominator2);
+      console.log("sell amountIn " + amountIn.toString()); // console.log(`sell amountOut ${amountOut.toString()}`)
+
+      console.log("sell numerator " + _numerator2.toString());
+      console.log("sell denominator " + _denominator2.toString());
+    } // const numerator = JSBI.multiply(JSBI.multiply(inputReserve.raw, outputAmount.raw), FEES_DENOMINATOR)
+    // const denominator = JSBI.multiply(JSBI.subtract(outputReserve.raw, outputAmount.raw), FEES_NUMERATOR)
+
+
+    var inputAmount = new TokenAmount(outputAmount.token.equals(this.token0) ? this.token1 : this.token0, amountIn);
     return [inputAmount, new Pair(inputReserve.add(inputAmount), outputReserve.subtract(outputAmount))];
   };
 
@@ -1032,9 +1112,14 @@ var Percent = /*#__PURE__*/function (_Fraction) {
  */
 
 function computePriceImpact(midPrice, inputAmount, outputAmount) {
-  var exactQuote = midPrice.raw.multiply(inputAmount.raw); // calculate slippage := (exactQuote - outputAmount) / exactQuote
+  console.log('sdk computePriceImpact');
+  var exactQuote = midPrice.raw.multiply(inputAmount.raw);
+  console.log("inputAmount.raw " + inputAmount.raw.toString());
+  console.log("outputAmount " + outputAmount.raw.toString()); // calculate slippage := (exactQuote - outputAmount) / exactQuote
 
   var slippage = exactQuote.subtract(outputAmount.raw).divide(exactQuote);
+  console.log("slippage.numerator " + slippage.numerator.toString());
+  console.log("slippage.denominator " + slippage.denominator.toString());
   return new Percent(slippage.numerator, slippage.denominator);
 } // comparator function that allows sorting trades by their output amounts, in decreasing order, and then input amounts
 // in increasing order. i.e. the best trades have the most outputs for the least inputs and are sorted first
@@ -1147,6 +1232,7 @@ var Trade = /*#__PURE__*/function () {
     this.outputAmount = tradeType === exports.TradeType.EXACT_OUTPUT ? amount : route.output === ETHER ? CurrencyAmount.ether(amounts[amounts.length - 1].raw) : amounts[amounts.length - 1];
     this.executionPrice = new Price(this.inputAmount.currency, this.outputAmount.currency, this.inputAmount.raw, this.outputAmount.raw);
     this.nextMidPrice = Price.fromRoute(new Route(nextPairs, route.input));
+    console.log('____ Trade init');
     this.priceImpact = computePriceImpact(route.midPrice, this.inputAmount, this.outputAmount);
   }
   /**

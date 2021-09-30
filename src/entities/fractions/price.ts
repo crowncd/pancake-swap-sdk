@@ -61,7 +61,29 @@ export class Price extends Fraction {
   public quote(currencyAmount: CurrencyAmount): CurrencyAmount {
     invariant(currencyEquals(currencyAmount.currency, this.baseCurrency), 'TOKEN')
     if (this.quoteCurrency instanceof Token) {
+      console.log(`sdk quote currencyAmount.raw`)
+      console.log(currencyAmount.raw.toString())
       return new TokenAmount(this.quoteCurrency, super.multiply(currencyAmount.raw).quotient)
+    }
+    return CurrencyAmount.ether(super.multiply(currencyAmount.raw).quotient)
+  }
+
+  public quote1(currencyAmount: CurrencyAmount): CurrencyAmount {
+    invariant(currencyEquals(currencyAmount.currency, this.baseCurrency), 'TOKEN')
+    if (this.quoteCurrency instanceof Token) {
+      console.log(`sdk quote currencyAmount.raw`)
+      console.log(currencyAmount.raw.toString())
+      return new TokenAmount(this.quoteCurrency, super.multiply(JSBI.divide(currencyAmount.raw, JSBI.BigInt(2))).quotient)
+    }
+    return CurrencyAmount.ether(super.multiply(currencyAmount.raw).quotient)
+  }
+
+  public quote2(currencyAmount: CurrencyAmount): CurrencyAmount {
+    invariant(currencyEquals(currencyAmount.currency, this.baseCurrency), 'TOKEN')
+    if (this.quoteCurrency instanceof Token) {
+      console.log(`sdk quote currencyAmount.raw`)
+      console.log(currencyAmount.raw.toString())
+      return new TokenAmount(this.quoteCurrency, super.multiply(JSBI.multiply(currencyAmount.raw, JSBI.BigInt(2))).quotient)
     }
     return CurrencyAmount.ether(super.multiply(currencyAmount.raw).quotient)
   }
