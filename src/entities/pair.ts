@@ -13,7 +13,7 @@ import {
   ZERO,
   ONE,
   FIVE,
-  // FEES_NUMERATOR,
+  FEES_NUMERATOR,
   FEES_DENOMINATOR,
   ChainId,
 } from '../constants'
@@ -150,10 +150,14 @@ export class Pair {
       // uint denominator = reserveIn.mul(10000).add(amountInWithFee);
       // amountOut = numerator / denominator;
       
-      const inputAmountWithFee = JSBI.multiply(inputAmount.raw, JSBI.subtract(FEES_DENOMINATOR, JSBI.BigInt(525)))
+      // const inputAmountWithFee = JSBI.multiply(inputAmount.raw, JSBI.subtract(FEES_DENOMINATOR, JSBI.BigInt(25)))
+      // const numerator = JSBI.multiply(inputAmountWithFee, outputReserve.raw)
+      // const denominator = JSBI.add(JSBI.multiply(inputReserve.raw, FEES_DENOMINATOR), inputAmountWithFee)
+      const inputAmountWithFee = JSBI.multiply(inputAmount.raw, FEES_NUMERATOR)
       const numerator = JSBI.multiply(inputAmountWithFee, outputReserve.raw)
-      const denominator = JSBI.add(JSBI.multiply(inputReserve.raw, FEES_DENOMINATOR), inputAmountWithFee)
+      const denominator = JSBI.add(JSBI.multiply(inputReserve.raw, FEES_NUMERATOR), inputAmountWithFee)
       amountOut = JSBI.divide(numerator, denominator)
+      amountOut = JSBI.subtract(amountOut, JSBI.multiply(amountOut, JSBI.divide(JSBI.BigInt(500), FEES_DENOMINATOR)))
     }
 
     console.log(`amountOut ${amountOut.toString()}`)

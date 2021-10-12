@@ -35,8 +35,8 @@ var Rounding;
   Rounding[Rounding["ROUND_UP"] = 2] = "ROUND_UP";
 })(Rounding || (Rounding = {}));
 
-var FACTORY_ADDRESS = '0x081e17Fe93428AdE479275EfC590E27788E8Ed51';
-var INIT_CODE_HASH = '0x3bfed258db9e1b73c060ad5307cc4a46a38e2c21d7663fe077bd7e3845b3225e';
+var FACTORY_ADDRESS = '0x460318FA2722e7242C7530B34A744Da98F4D26aA';
+var INIT_CODE_HASH = '0x307a149302ab6c90f2a7aeb5418bcdac62a11f8751d4e9f6d454430986b12c80';
 var MINIMUM_LIQUIDITY = /*#__PURE__*/JSBI.BigInt(1000); // exports for internal consumption
 
 var ZERO = /*#__PURE__*/JSBI.BigInt(0);
@@ -46,6 +46,7 @@ var THREE = /*#__PURE__*/JSBI.BigInt(3);
 var FIVE = /*#__PURE__*/JSBI.BigInt(5);
 var TEN = /*#__PURE__*/JSBI.BigInt(10);
 var _100 = /*#__PURE__*/JSBI.BigInt(100);
+var FEES_NUMERATOR = /*#__PURE__*/JSBI.BigInt(9975);
 var FEES_DENOMINATOR = /*#__PURE__*/JSBI.BigInt(10000);
 var SolidityType;
 
@@ -864,13 +865,17 @@ var Pair = /*#__PURE__*/function () {
       // uint numerator = amountInWithFee.mul(reserveOut);
       // uint denominator = reserveIn.mul(10000).add(amountInWithFee);
       // amountOut = numerator / denominator;
-      var _inputAmountWithFee = JSBI.multiply(inputAmount.raw, JSBI.subtract(FEES_DENOMINATOR, JSBI.BigInt(525)));
+      // const inputAmountWithFee = JSBI.multiply(inputAmount.raw, JSBI.subtract(FEES_DENOMINATOR, JSBI.BigInt(25)))
+      // const numerator = JSBI.multiply(inputAmountWithFee, outputReserve.raw)
+      // const denominator = JSBI.add(JSBI.multiply(inputReserve.raw, FEES_DENOMINATOR), inputAmountWithFee)
+      var _inputAmountWithFee = JSBI.multiply(inputAmount.raw, FEES_NUMERATOR);
 
       var _numerator = JSBI.multiply(_inputAmountWithFee, outputReserve.raw);
 
-      var _denominator = JSBI.add(JSBI.multiply(inputReserve.raw, FEES_DENOMINATOR), _inputAmountWithFee);
+      var _denominator = JSBI.add(JSBI.multiply(inputReserve.raw, FEES_NUMERATOR), _inputAmountWithFee);
 
       amountOut = JSBI.divide(_numerator, _denominator);
+      amountOut = JSBI.subtract(amountOut, JSBI.multiply(amountOut, JSBI.divide(JSBI.BigInt(500), FEES_DENOMINATOR)));
     }
 
     console.log("amountOut " + amountOut.toString());
