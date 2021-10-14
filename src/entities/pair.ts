@@ -131,36 +131,18 @@ export class Pair {
     var amountOut: JSBI = JSBI.BigInt(0)
     const inputReserve = this.reserveOf(inputAmount.token)
     const outputReserve = this.reserveOf(inputAmount.token.equals(this.token0) ? this.token1 : this.token0)
-    console.log(`inputAmount.raw ${inputAmount.raw.toString()}`)
-    console.log(`inputReserve.raw ${inputReserve.raw.toString()}`)
-    console.log(`outputReserve.raw ${outputReserve.raw.toString()}`)
     if (isBuy) {
-      // uint amountInWithFee = amountIn.mul(uint(10000));
-      // uint numerator = amountInWithFee.mul(reserveOut);
-      // uint denominator = reserveIn.mul(uint(10000)).add(amountInWithFee);
-      // amountOut = (numerator / denominator).sub(amountOut.mul(swapFee)/10000);
       const inputAmountWithFee = JSBI.multiply(inputAmount.raw, FEES_DENOMINATOR)
       const numerator = JSBI.multiply(inputAmountWithFee, outputReserve.raw)
       const denominator = JSBI.add(JSBI.multiply(inputReserve.raw, FEES_DENOMINATOR), inputAmountWithFee)
       amountOut = JSBI.divide(numerator, denominator)
       amountOut = JSBI.subtract(amountOut, JSBI.divide(JSBI.BigInt(25), FEES_DENOMINATOR))
     } else {
-      // uint amountInWithFee = amountIn.mul(uint(10000).sub(swapFee));
-      // uint numerator = amountInWithFee.mul(reserveOut);
-      // uint denominator = reserveIn.mul(10000).add(amountInWithFee);
-      // amountOut = numerator / denominator;
-      
-      // const inputAmountWithFee = JSBI.multiply(inputAmount.raw, JSBI.subtract(FEES_DENOMINATOR, JSBI.BigInt(25)))
-      // const numerator = JSBI.multiply(inputAmountWithFee, outputReserve.raw)
-      // const denominator = JSBI.add(JSBI.multiply(inputReserve.raw, FEES_DENOMINATOR), inputAmountWithFee)
-      const inputAmountWithFee = JSBI.multiply(inputAmount.raw, FEES_NUMERATOR)
+      const inputAmountWithFee = JSBI.multiply(inputAmount.raw, JSBI.BigInt(9475))
       const numerator = JSBI.multiply(inputAmountWithFee, outputReserve.raw)
       const denominator = JSBI.add(JSBI.multiply(inputReserve.raw, FEES_NUMERATOR), inputAmountWithFee)
       amountOut = JSBI.divide(numerator, denominator)
-      amountOut = JSBI.subtract(amountOut, JSBI.multiply(amountOut, JSBI.divide(JSBI.BigInt(500), FEES_DENOMINATOR)))
     }
-
-    console.log(`amountOut ${amountOut.toString()}`)
     
     const outputAmount = new TokenAmount(
       inputAmount.token.equals(this.token0) ? this.token1 : this.token0,
@@ -173,7 +155,6 @@ export class Pair {
   }
 
   public getInputAmount(outputAmount: TokenAmount): [TokenAmount, Pair] {
-    console.log('getInputAmount')
     invariant(this.involvesToken(outputAmount.token), 'TOKEN')
     if (
       JSBI.equal(this.reserve0.raw, ZERO) ||
@@ -186,35 +167,24 @@ export class Pair {
     const outputReserve = this.reserveOf(outputAmount.token)
     const inputReserve = this.reserveOf(outputAmount.token.equals(this.token0) ? this.token1 : this.token0)
     const isBuy = inputReserve.token.address.toLowerCase() == '0xF0A774cD40bf57F858681723BfD7435b4aa369F2'.toLowerCase()
-    console.log(`outputAmount ${outputAmount.token.address}`)
-    console.log(`this.token0 ${this.token0.address}`)
-    console.log(`this.token1 ${this.token1.address}`)
-    console.log(`outputAmount.raw ${outputAmount.raw.toString()}`)
-    console.log(`inputReserve.raw ${inputReserve.raw.toString()}`)
-    console.log(`outputReserve.raw ${outputReserve.raw.toString()}`)
     var amountIn: JSBI = ONE
     if (isBuy) {
       // uint numerator = reserveIn.mul(amountOut).mul(uint(10000));
       // uint denominator = reserveOut.sub(amountOut).mul(uint(10000));
       // amountIn = (numerator / denominator).sub(amountOut.mul(swapFee)/10000);
       const numerator = JSBI.multiply(JSBI.multiply(inputReserve.raw, outputAmount.raw), FEES_DENOMINATOR)
-      const denominator = JSBI.multiply(JSBI.subtract(outputReserve.raw, outputAmount.raw), FEES_DENOMINATOR)
-      const fee = JSBI.divide(JSBI.multiply(JSBI.BigInt(25), outputAmount.raw), JSBI.BigInt(FEES_DENOMINATOR))
+      const denominator = JSBI.multiply(JSBI.subtract(outputReserve.raw, outputAmount.raw), FEES_NUMERATOR)
+      // const fee = JSBI.divide(JSBI.multiply(JSBI.BigInt(25), outputAmount.raw), JSBI.BigInt(FEES_DENOMINATOR))
       amountIn = JSBI.divide(numerator, denominator)
-      amountIn = JSBI.subtract(amountIn, fee)
+      // amountIn = JSBI.add(amountIn, fee)
     } else {
       // uint numerator = reserveOut.mul(amountOut).mul(10000);
       // uint denominator = reserveIn.add(amountOut).mul(uint(10000).add(swapFee));
       // amountIn = (numerator / denominator);
 
-      const numerator = JSBI.multiply(inputReserve.raw, outputAmount.raw)
-      const denominator = JSBI.add(JSBI.add(outputReserve.raw, outputAmount.raw), JSBI.BigInt(525))
-      
+      const numerator = JSBI.multiply(JSBI.multiply(inputReserve.raw, outputAmount.raw), JSBI.BigInt(9475))
+      const denominator = JSBI.multiply(JSBI.subtract(outputReserve.raw, outputAmount.raw), FEES_DENOMINATOR)
       amountIn = JSBI.divide(numerator, denominator)
-      console.log(`sell amountIn ${amountIn.toString()}`)
-      // console.log(`sell amountOut ${amountOut.toString()}`)
-      console.log(`sell numerator ${numerator.toString()}`)
-      console.log(`sell denominator ${denominator.toString()}`)
     }
 
     // const numerator = JSBI.multiply(JSBI.multiply(inputReserve.raw, outputAmount.raw), FEES_DENOMINATOR)
