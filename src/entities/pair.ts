@@ -73,6 +73,9 @@ export class Pair {
    * Returns the current mid price of the pair in terms of token0, i.e. the ratio of reserve1 to reserve0
    */
   public get token0Price(): Price {
+    // if (this.token0.address === '0xF0A774cD40bf57F858681723BfD7435b4aa369F2') {
+    //   return new Price(this.token0, this.token1, JSBI.multiply(this.tokenAmounts[0].raw, JSBI.BigInt(9745)), this.tokenAmounts[1].raw)
+    // }
     return new Price(this.token0, this.token1, this.tokenAmounts[0].raw, this.tokenAmounts[1].raw)
   }
 
@@ -80,6 +83,9 @@ export class Pair {
    * Returns the current mid price of the pair in terms of token1, i.e. the ratio of reserve0 to reserve1
    */
   public get token1Price(): Price {
+    // if (this.token1.address === '0xF0A774cD40bf57F858681723BfD7435b4aa369F2') {
+    //   return new Price(this.token1, this.token0, this.tokenAmounts[1].raw, JSBI.multiply(this.tokenAmounts[0].raw, JSBI.BigInt(9745)))
+    // }
     return new Price(this.token1, this.token0, this.tokenAmounts[1].raw, this.tokenAmounts[0].raw)
   }
 
@@ -136,11 +142,16 @@ export class Pair {
       const numerator = JSBI.multiply(inputAmountWithFee, outputReserve.raw)
       const denominator = JSBI.add(JSBI.multiply(inputReserve.raw, FEES_DENOMINATOR), inputAmountWithFee)
       amountOut = JSBI.divide(numerator, denominator)
-      amountOut = JSBI.subtract(amountOut, JSBI.divide(JSBI.BigInt(25), FEES_DENOMINATOR))
+      amountOut = JSBI.subtract(amountOut, JSBI.divide(JSBI.multiply(amountOut, JSBI.BigInt(25)), FEES_DENOMINATOR))
     } else {
+      // uint amountInWithFee = amountIn.mul(9475);
+      // uint numerator = amountInWithFee.mul(reserveOut);
+      // uint denominator = reserveIn.mul(10000).add(amountInWithFee);
+      // amountOut = numerator / denominator;
+
       const inputAmountWithFee = JSBI.multiply(inputAmount.raw, JSBI.BigInt(9475))
       const numerator = JSBI.multiply(inputAmountWithFee, outputReserve.raw)
-      const denominator = JSBI.add(JSBI.multiply(inputReserve.raw, FEES_NUMERATOR), inputAmountWithFee)
+      const denominator = JSBI.add(JSBI.multiply(inputReserve.raw, FEES_DENOMINATOR), inputAmountWithFee)
       amountOut = JSBI.divide(numerator, denominator)
     }
     

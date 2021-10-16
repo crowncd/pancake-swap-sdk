@@ -35,8 +35,8 @@ var _SOLIDITY_TYPE_MAXIMA;
   Rounding[Rounding["ROUND_UP"] = 2] = "ROUND_UP";
 })(exports.Rounding || (exports.Rounding = {}));
 
-var FACTORY_ADDRESS = '0x6656e37037B9c742F5bdE5Ec56989e11c9fC5D18';
-var INIT_CODE_HASH = '0xa1a1d6086cc7c8a8221c7c158c45f65358970a80dd1db52e4edd664b573701e5';
+var FACTORY_ADDRESS = '0xf401E324a07f270f3Dcfd4c482D17D9651e26Da2';
+var INIT_CODE_HASH = '0x4940a0b8e02a037f985657751a8bcdf863f0de7cc22c7b40fe46300315e806c6';
 var MINIMUM_LIQUIDITY = /*#__PURE__*/JSBI.BigInt(1000); // exports for internal consumption
 
 var ZERO = /*#__PURE__*/JSBI.BigInt(0);
@@ -852,13 +852,17 @@ var Pair = /*#__PURE__*/function () {
       var numerator = JSBI.multiply(inputAmountWithFee, outputReserve.raw);
       var denominator = JSBI.add(JSBI.multiply(inputReserve.raw, FEES_DENOMINATOR), inputAmountWithFee);
       amountOut = JSBI.divide(numerator, denominator);
-      amountOut = JSBI.subtract(amountOut, JSBI.divide(JSBI.BigInt(25), FEES_DENOMINATOR));
+      amountOut = JSBI.subtract(amountOut, JSBI.divide(JSBI.multiply(amountOut, JSBI.BigInt(25)), FEES_DENOMINATOR));
     } else {
+      // uint amountInWithFee = amountIn.mul(9475);
+      // uint numerator = amountInWithFee.mul(reserveOut);
+      // uint denominator = reserveIn.mul(10000).add(amountInWithFee);
+      // amountOut = numerator / denominator;
       var _inputAmountWithFee = JSBI.multiply(inputAmount.raw, JSBI.BigInt(9475));
 
       var _numerator = JSBI.multiply(_inputAmountWithFee, outputReserve.raw);
 
-      var _denominator = JSBI.add(JSBI.multiply(inputReserve.raw, FEES_NUMERATOR), _inputAmountWithFee);
+      var _denominator = JSBI.add(JSBI.multiply(inputReserve.raw, FEES_DENOMINATOR), _inputAmountWithFee);
 
       amountOut = JSBI.divide(_numerator, _denominator);
     }
@@ -971,6 +975,9 @@ var Pair = /*#__PURE__*/function () {
   _createClass(Pair, [{
     key: "token0Price",
     get: function get() {
+      // if (this.token0.address === '0xF0A774cD40bf57F858681723BfD7435b4aa369F2') {
+      //   return new Price(this.token0, this.token1, JSBI.multiply(this.tokenAmounts[0].raw, JSBI.BigInt(9745)), this.tokenAmounts[1].raw)
+      // }
       return new Price(this.token0, this.token1, this.tokenAmounts[0].raw, this.tokenAmounts[1].raw);
     }
     /**
@@ -980,6 +987,9 @@ var Pair = /*#__PURE__*/function () {
   }, {
     key: "token1Price",
     get: function get() {
+      // if (this.token1.address === '0xF0A774cD40bf57F858681723BfD7435b4aa369F2') {
+      //   return new Price(this.token1, this.token0, this.tokenAmounts[1].raw, JSBI.multiply(this.tokenAmounts[0].raw, JSBI.BigInt(9745)))
+      // }
       return new Price(this.token1, this.token0, this.tokenAmounts[1].raw, this.tokenAmounts[0].raw);
     }
   }, {
