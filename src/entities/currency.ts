@@ -18,8 +18,9 @@ export class Currency {
    */
   public static readonly ETHER: Currency = new Currency(18, 'BNB', 'BNB')
 
-  public static readonly OUTS: [string] = [
-    '0xAed51219c8E94D86417d9F19480E88F8FcdF2054'
+  public static readonly OUTS: string[] = [
+    '0xAed51219c8E94D86417d9F19480E88F8FcdF2054',
+    '0x1230a99892f5a0b73d1190ccf9c818245462Cb4a'
   ]
 
   /**

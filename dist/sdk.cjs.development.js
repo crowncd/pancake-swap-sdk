@@ -35,7 +35,7 @@ var _SOLIDITY_TYPE_MAXIMA;
   Rounding[Rounding["ROUND_UP"] = 2] = "ROUND_UP";
 })(exports.Rounding || (exports.Rounding = {}));
 
-var FACTORY_ADDRESS = '0xf401E324a07f270f3Dcfd4c482D17D9651e26Da2';
+var FACTORY_ADDRESS = '0x2E4837AAecFD194b2d5cfC6B77Cf9BfE0551B0A1';
 var INIT_CODE_HASH = '0x4940a0b8e02a037f985657751a8bcdf863f0de7cc22c7b40fe46300315e806c6';
 var MINIMUM_LIQUIDITY = /*#__PURE__*/JSBI.BigInt(1000); // exports for internal consumption
 
@@ -367,7 +367,7 @@ function Currency(decimals, symbol, name) {
  */
 
 Currency.ETHER = /*#__PURE__*/new Currency(18, 'BNB', 'BNB');
-Currency.OUTS = ['0xAed51219c8E94D86417d9F19480E88F8FcdF2054'];
+Currency.OUTS = ['0xAed51219c8E94D86417d9F19480E88F8FcdF2054', '0x1230a99892f5a0b73d1190ccf9c818245462Cb4a'];
 var ETHER = Currency.ETHER;
 var OUTS = Currency.OUTS;
 
