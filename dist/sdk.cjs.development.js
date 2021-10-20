@@ -367,7 +367,9 @@ function Currency(decimals, symbol, name) {
  */
 
 Currency.ETHER = /*#__PURE__*/new Currency(18, 'BNB', 'BNB');
+Currency.OUTS = ['0xAed51219c8E94D86417d9F19480E88F8FcdF2054'];
 var ETHER = Currency.ETHER;
+var OUTS = Currency.OUTS;
 
 var _WETH;
 /**
@@ -975,9 +977,6 @@ var Pair = /*#__PURE__*/function () {
   _createClass(Pair, [{
     key: "token0Price",
     get: function get() {
-      // if (this.token0.address === '0xF0A774cD40bf57F858681723BfD7435b4aa369F2') {
-      //   return new Price(this.token0, this.token1, JSBI.multiply(this.tokenAmounts[0].raw, JSBI.BigInt(9745)), this.tokenAmounts[1].raw)
-      // }
       return new Price(this.token0, this.token1, this.tokenAmounts[0].raw, this.tokenAmounts[1].raw);
     }
     /**
@@ -987,9 +986,6 @@ var Pair = /*#__PURE__*/function () {
   }, {
     key: "token1Price",
     get: function get() {
-      // if (this.token1.address === '0xF0A774cD40bf57F858681723BfD7435b4aa369F2') {
-      //   return new Price(this.token1, this.token0, this.tokenAmounts[1].raw, JSBI.multiply(this.tokenAmounts[0].raw, JSBI.BigInt(9745)))
-      // }
       return new Price(this.token1, this.token0, this.tokenAmounts[1].raw, this.tokenAmounts[0].raw);
     }
   }, {
@@ -1217,10 +1213,22 @@ var Trade = /*#__PURE__*/function () {
     this.tradeType = tradeType;
     this.inputAmount = tradeType === exports.TradeType.EXACT_INPUT ? amount : route.input === ETHER ? CurrencyAmount.ether(amounts[0].raw) : amounts[0];
     this.outputAmount = tradeType === exports.TradeType.EXACT_OUTPUT ? amount : route.output === ETHER ? CurrencyAmount.ether(amounts[amounts.length - 1].raw) : amounts[amounts.length - 1];
-    this.executionPrice = new Price(this.inputAmount.currency, this.outputAmount.currency, this.inputAmount.raw, this.outputAmount.raw);
+    var isExsit = this.findToken(route.path[0].address);
+    console.log("\u662F\u5426\u627E\u5230 " + isExsit);
     this.nextMidPrice = Price.fromRoute(new Route(nextPairs, route.input));
     console.log('____ Trade init');
+    console.log(JSBI.BigInt(0));
+
+    if (isExsit) {
+      this.executionPrice = new Price(this.inputAmount.currency, this.outputAmount.currency, JSBI.divide(JSBI.multiply(this.inputAmount.raw, JSBI.BigInt(9475)), JSBI.BigInt(10000)), this.outputAmount.raw);
+      console.log("\u8F93\u5165 " + JSBI.divide(JSBI.multiply(this.inputAmount.raw, JSBI.BigInt(9475)), JSBI.BigInt(10000)));
+    } else {
+      this.executionPrice = new Price(this.inputAmount.currency, this.outputAmount.currency, this.inputAmount.raw, this.outputAmount.raw);
+    }
+
     this.priceImpact = computePriceImpact(route.midPrice, this.inputAmount, this.outputAmount);
+    console.log("priceImpact");
+    console.log(this.priceImpact);
   }
   /**
    * Constructs an exact in trade with the given amount in and route
@@ -1241,14 +1249,24 @@ var Trade = /*#__PURE__*/function () {
 
   Trade.exactOut = function exactOut(route, amountOut) {
     return new Trade(route, amountOut, exports.TradeType.EXACT_OUTPUT);
+  };
+
+  var _proto = Trade.prototype;
+
+  _proto.findToken = function findToken(input) {
+    for (var i = 0; i < OUTS.length; i++) {
+      if (input.toLowerCase() === OUTS[i].toLowerCase()) {
+        return true;
+      }
+    }
+
+    return false;
   }
   /**
    * Get the minimum amount that must be received from this trade for the given slippage tolerance
    * @param slippageTolerance tolerance of unfavorable slippage from the execution price of this trade
    */
   ;
-
-  var _proto = Trade.prototype;
 
   _proto.minimumAmountOut = function minimumAmountOut(slippageTolerance) {
     !!slippageTolerance.lessThan(ZERO) ?  invariant(false, 'SLIPPAGE_TOLERANCE')  : void 0;
@@ -1657,6 +1675,7 @@ exports.INIT_CODE_HASH = INIT_CODE_HASH;
 exports.InsufficientInputAmountError = InsufficientInputAmountError;
 exports.InsufficientReservesError = InsufficientReservesError;
 exports.MINIMUM_LIQUIDITY = MINIMUM_LIQUIDITY;
+exports.OUTS = OUTS;
 exports.Pair = Pair;
 exports.Percent = Percent;
 exports.Price = Price;

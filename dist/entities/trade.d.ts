@@ -61,6 +61,7 @@ export declare class Trade {
      */
     static exactOut(route: Route, amountOut: CurrencyAmount): Trade;
     constructor(route: Route, amount: CurrencyAmount, tradeType: TradeType);
+    private findToken;
     /**
      * Get the minimum amount that must be received from this trade for the given slippage tolerance
      * @param slippageTolerance tolerance of unfavorable slippage from the execution price of this trade

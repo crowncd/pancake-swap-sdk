@@ -73,9 +73,6 @@ export class Pair {
    * Returns the current mid price of the pair in terms of token0, i.e. the ratio of reserve1 to reserve0
    */
   public get token0Price(): Price {
-    // if (this.token0.address === '0xF0A774cD40bf57F858681723BfD7435b4aa369F2') {
-    //   return new Price(this.token0, this.token1, JSBI.multiply(this.tokenAmounts[0].raw, JSBI.BigInt(9745)), this.tokenAmounts[1].raw)
-    // }
     return new Price(this.token0, this.token1, this.tokenAmounts[0].raw, this.tokenAmounts[1].raw)
   }
 
@@ -83,9 +80,6 @@ export class Pair {
    * Returns the current mid price of the pair in terms of token1, i.e. the ratio of reserve0 to reserve1
    */
   public get token1Price(): Price {
-    // if (this.token1.address === '0xF0A774cD40bf57F858681723BfD7435b4aa369F2') {
-    //   return new Price(this.token1, this.token0, this.tokenAmounts[1].raw, JSBI.multiply(this.tokenAmounts[0].raw, JSBI.BigInt(9745)))
-    // }
     return new Price(this.token1, this.token0, this.tokenAmounts[1].raw, this.tokenAmounts[0].raw)
   }
 
