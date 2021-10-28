@@ -18,6 +18,7 @@ var ChainId;
 (function (ChainId) {
   ChainId[ChainId["MAINNET"] = 56] = "MAINNET";
   ChainId[ChainId["TESTNET"] = 97] = "TESTNET";
+  ChainId[ChainId["ZK"] = 1283] = "ZK";
 })(ChainId || (ChainId = {}));
 
 var TradeType;
@@ -35,8 +36,8 @@ var Rounding;
   Rounding[Rounding["ROUND_UP"] = 2] = "ROUND_UP";
 })(Rounding || (Rounding = {}));
 
-var FACTORY_ADDRESS = '0xf401E324a07f270f3Dcfd4c482D17D9651e26Da2';
-var INIT_CODE_HASH = '0x4940a0b8e02a037f985657751a8bcdf863f0de7cc22c7b40fe46300315e806c6';
+var FACTORY_ADDRESS = '0x70ab5011fC9E6Ba5d857D6Dc1Aa3099cD49a3AB6';
+var INIT_CODE_HASH = '0x22fdf4f129765c0e6837bfd107848b58ddb299b5ed45c858271653e7ac287e9c';
 var MINIMUM_LIQUIDITY = /*#__PURE__*/JSBI.BigInt(1000); // exports for internal consumption
 
 var ZERO = /*#__PURE__*/JSBI.BigInt(0);
@@ -365,9 +366,10 @@ function Currency(decimals, symbol, name) {
 /**
  * The only instance of the base class `Currency`.
  */
+// public static readonly ETHER: Currency = new Currency(18, 'BNB', 'BNB')
 
-Currency.ETHER = /*#__PURE__*/new Currency(18, 'BNB', 'BNB');
-Currency.OUTS = ['0xAed51219c8E94D86417d9F19480E88F8FcdF2054', '0x1230a99892f5a0b73d1190ccf9c818245462Cb4a'];
+Currency.ETHER = /*#__PURE__*/new Currency(18, 'ZK', 'ZK');
+Currency.OUTS = ['0xAed51219c8E94D86417d9F19480E88F8FcdF2054', '0x1230a99892f5a0b73d1190ccf9c818245462Cb4a', '0x6809Af34853608C44C659e030Fc405eDDef7Fba5'];
 var ETHER = Currency.ETHER;
 var OUTS = Currency.OUTS;
 
@@ -435,7 +437,7 @@ function currencyEquals(currencyA, currencyB) {
     return currencyA === currencyB;
   }
 }
-var WETH = (_WETH = {}, _WETH[ChainId.MAINNET] = /*#__PURE__*/new Token(ChainId.MAINNET, '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c', 18, 'WBNB', 'Wrapped BNB', 'https://www.binance.org'), _WETH[ChainId.TESTNET] = /*#__PURE__*/new Token(ChainId.TESTNET, '0xaE8E19eFB41e7b96815649A6a60785e1fbA84C1e', 18, 'WBNB', 'Wrapped BNB', 'https://www.binance.org'), _WETH);
+var WETH = (_WETH = {}, _WETH[ChainId.MAINNET] = /*#__PURE__*/new Token(ChainId.MAINNET, '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c', 18, 'WBNB', 'Wrapped BNB', 'https://www.binance.org'), _WETH[ChainId.TESTNET] = /*#__PURE__*/new Token(ChainId.TESTNET, '0xaE8E19eFB41e7b96815649A6a60785e1fbA84C1e', 18, 'WBNB', 'Wrapped BNB', 'https://www.binance.org'), _WETH[ChainId.ZK] = /*#__PURE__*/new Token(ChainId.ZK, '0x365dbFbD7122B2d34446196000d557Af6Ec83C16', 18, 'WZK', 'Wrapped ZK', 'https://www.zk.org'), _WETH);
 
 var _toSignificantRoundin, _toFixedRounding;
 var Decimal = /*#__PURE__*/toFormat(_Decimal);

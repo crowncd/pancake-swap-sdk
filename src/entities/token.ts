@@ -81,5 +81,13 @@ export const WETH = {
     'WBNB',
     'Wrapped BNB',
     'https://www.binance.org'
+  ),
+  [ChainId.ZK]: new Token(
+    ChainId.ZK,
+    '0x365dbFbD7122B2d34446196000d557Af6Ec83C16',
+    18,
+    'WZK',
+    'Wrapped ZK',
+    'https://www.zk.org'
   )
 }
