@@ -38,6 +38,7 @@ var _SOLIDITY_TYPE_MAXIMA;
 
 var FACTORY_ADDRESS = '0x70ab5011fC9E6Ba5d857D6Dc1Aa3099cD49a3AB6';
 var INIT_CODE_HASH = '0x22fdf4f129765c0e6837bfd107848b58ddb299b5ed45c858271653e7ac287e9c';
+var OUTS = ['0xAed51219c8E94D86417d9F19480E88F8FcdF2054', '0x1230a99892f5a0b73d1190ccf9c818245462Cb4a', '0x6809Af34853608C44C659e030Fc405eDDef7Fba5'];
 var MINIMUM_LIQUIDITY = /*#__PURE__*/JSBI.BigInt(1000); // exports for internal consumption
 
 var ZERO = /*#__PURE__*/JSBI.BigInt(0);
@@ -369,9 +370,7 @@ function Currency(decimals, symbol, name) {
 // public static readonly ETHER: Currency = new Currency(18, 'BNB', 'BNB')
 
 Currency.ETHER = /*#__PURE__*/new Currency(18, 'ZK', 'ZK');
-Currency.OUTS = ['0xAed51219c8E94D86417d9F19480E88F8FcdF2054', '0x1230a99892f5a0b73d1190ccf9c818245462Cb4a', '0x6809Af34853608C44C659e030Fc405eDDef7Fba5'];
 var ETHER = Currency.ETHER;
-var OUTS = Currency.OUTS;
 
 var _WETH;
 /**
@@ -548,7 +547,6 @@ var Fraction = /*#__PURE__*/function () {
   _createClass(Fraction, [{
     key: "quotient",
     get: function get() {
-      console.log("quotient " + this.numerator.toString() + " " + this.denominator.toString());
       return JSBI.divide(this.numerator, this.denominator);
     } // remainder after floor division
 
@@ -719,8 +717,6 @@ var Price = /*#__PURE__*/function (_Fraction) {
     !currencyEquals(currencyAmount.currency, this.baseCurrency) ?  invariant(false, 'TOKEN')  : void 0;
 
     if (this.quoteCurrency instanceof Token) {
-      console.log("sdk quote currencyAmount.raw");
-      console.log(currencyAmount.raw.toString());
       return new TokenAmount(this.quoteCurrency, _Fraction.prototype.multiply.call(this, currencyAmount.raw).quotient);
     }
 
@@ -731,8 +727,6 @@ var Price = /*#__PURE__*/function (_Fraction) {
     !currencyEquals(currencyAmount.currency, this.baseCurrency) ?  invariant(false, 'TOKEN')  : void 0;
 
     if (this.quoteCurrency instanceof Token) {
-      console.log("sdk quote currencyAmount.raw");
-      console.log(currencyAmount.raw.toString());
       return new TokenAmount(this.quoteCurrency, _Fraction.prototype.multiply.call(this, JSBI.divide(currencyAmount.raw, JSBI.BigInt(2))).quotient);
     }
 
@@ -743,8 +737,6 @@ var Price = /*#__PURE__*/function (_Fraction) {
     !currencyEquals(currencyAmount.currency, this.baseCurrency) ?  invariant(false, 'TOKEN')  : void 0;
 
     if (this.quoteCurrency instanceof Token) {
-      console.log("sdk quote currencyAmount.raw");
-      console.log(currencyAmount.raw.toString());
       return new TokenAmount(this.quoteCurrency, _Fraction.prototype.multiply.call(this, JSBI.multiply(currencyAmount.raw, JSBI.BigInt(2))).quotient);
     }
 
@@ -833,20 +825,29 @@ var Pair = /*#__PURE__*/function () {
    */
   ;
 
+  _proto.isBuy = function isBuy(input) {
+    for (var i = 0; i < OUTS.length; i++) {
+      if (input.toLowerCase() === OUTS[i].toLowerCase()) {
+        return false;
+      }
+    }
+
+    return true;
+  };
+
   _proto.reserveOf = function reserveOf(token) {
     !this.involvesToken(token) ?  invariant(false, 'TOKEN')  : void 0;
     return token.equals(this.token0) ? this.reserve0 : this.reserve1;
   };
 
   _proto.getOutputAmount = function getOutputAmount(inputAmount) {
-    console.log('getOutputAmount sdk');
     !this.involvesToken(inputAmount.token) ?  invariant(false, 'TOKEN')  : void 0;
 
     if (JSBI.equal(this.reserve0.raw, ZERO) || JSBI.equal(this.reserve1.raw, ZERO)) {
       throw new InsufficientReservesError();
     }
 
-    var isBuy = inputAmount.token.address.toLowerCase() == '0xF0A774cD40bf57F858681723BfD7435b4aa369F2'.toLowerCase();
+    var isBuy = this.isBuy(inputAmount.token.address);
     var amountOut = JSBI.BigInt(0);
     var inputReserve = this.reserveOf(inputAmount.token);
     var outputReserve = this.reserveOf(inputAmount.token.equals(this.token0) ? this.token1 : this.token0);
@@ -858,10 +859,6 @@ var Pair = /*#__PURE__*/function () {
       amountOut = JSBI.divide(numerator, denominator);
       amountOut = JSBI.subtract(amountOut, JSBI.divide(JSBI.multiply(amountOut, JSBI.BigInt(25)), FEES_DENOMINATOR));
     } else {
-      // uint amountInWithFee = amountIn.mul(9475);
-      // uint numerator = amountInWithFee.mul(reserveOut);
-      // uint denominator = reserveIn.mul(10000).add(amountInWithFee);
-      // amountOut = numerator / denominator;
       var _inputAmountWithFee = JSBI.multiply(inputAmount.raw, JSBI.BigInt(9475));
 
       var _numerator = JSBI.multiply(_inputAmountWithFee, outputReserve.raw);
@@ -889,29 +886,20 @@ var Pair = /*#__PURE__*/function () {
 
     var outputReserve = this.reserveOf(outputAmount.token);
     var inputReserve = this.reserveOf(outputAmount.token.equals(this.token0) ? this.token1 : this.token0);
-    var isBuy = inputReserve.token.address.toLowerCase() == '0xF0A774cD40bf57F858681723BfD7435b4aa369F2'.toLowerCase();
+    var isBuy = this.isBuy(inputReserve.token.address);
     var amountIn = ONE;
 
     if (isBuy) {
-      // uint numerator = reserveIn.mul(amountOut).mul(uint(10000));
-      // uint denominator = reserveOut.sub(amountOut).mul(uint(10000));
-      // amountIn = (numerator / denominator).sub(amountOut.mul(swapFee)/10000);
       var numerator = JSBI.multiply(JSBI.multiply(inputReserve.raw, outputAmount.raw), FEES_DENOMINATOR);
-      var denominator = JSBI.multiply(JSBI.subtract(outputReserve.raw, outputAmount.raw), FEES_NUMERATOR); // const fee = JSBI.divide(JSBI.multiply(JSBI.BigInt(25), outputAmount.raw), JSBI.BigInt(FEES_DENOMINATOR))
-
-      amountIn = JSBI.divide(numerator, denominator); // amountIn = JSBI.add(amountIn, fee)
+      var denominator = JSBI.multiply(JSBI.subtract(outputReserve.raw, outputAmount.raw), FEES_NUMERATOR);
+      amountIn = JSBI.divide(numerator, denominator);
     } else {
-      // uint numerator = reserveOut.mul(amountOut).mul(10000);
-      // uint denominator = reserveIn.add(amountOut).mul(uint(10000).add(swapFee));
-      // amountIn = (numerator / denominator);
       var _numerator2 = JSBI.multiply(JSBI.multiply(inputReserve.raw, outputAmount.raw), JSBI.BigInt(9475));
 
       var _denominator2 = JSBI.multiply(JSBI.subtract(outputReserve.raw, outputAmount.raw), FEES_DENOMINATOR);
 
       amountIn = JSBI.divide(_numerator2, _denominator2);
-    } // const numerator = JSBI.multiply(JSBI.multiply(inputReserve.raw, outputAmount.raw), FEES_DENOMINATOR)
-    // const denominator = JSBI.multiply(JSBI.subtract(outputReserve.raw, outputAmount.raw), FEES_NUMERATOR)
-
+    }
 
     var inputAmount = new TokenAmount(outputAmount.token.equals(this.token0) ? this.token1 : this.token0, amountIn);
     return [inputAmount, new Pair(inputReserve.add(inputAmount), outputReserve.subtract(outputAmount))];
@@ -1097,14 +1085,9 @@ var Percent = /*#__PURE__*/function (_Fraction) {
  */
 
 function computePriceImpact(midPrice, inputAmount, outputAmount) {
-  console.log('sdk computePriceImpact');
-  var exactQuote = midPrice.raw.multiply(inputAmount.raw);
-  console.log("inputAmount.raw " + inputAmount.raw.toString());
-  console.log("outputAmount " + outputAmount.raw.toString()); // calculate slippage := (exactQuote - outputAmount) / exactQuote
+  var exactQuote = midPrice.raw.multiply(inputAmount.raw); // calculate slippage := (exactQuote - outputAmount) / exactQuote
 
   var slippage = exactQuote.subtract(outputAmount.raw).divide(exactQuote);
-  console.log("slippage.numerator " + slippage.numerator.toString());
-  console.log("slippage.denominator " + slippage.denominator.toString());
   return new Percent(slippage.numerator, slippage.denominator);
 } // comparator function that allows sorting trades by their output amounts, in decreasing order, and then input amounts
 // in increasing order. i.e. the best trades have the most outputs for the least inputs and are sorted first
@@ -1216,21 +1199,15 @@ var Trade = /*#__PURE__*/function () {
     this.inputAmount = tradeType === exports.TradeType.EXACT_INPUT ? amount : route.input === ETHER ? CurrencyAmount.ether(amounts[0].raw) : amounts[0];
     this.outputAmount = tradeType === exports.TradeType.EXACT_OUTPUT ? amount : route.output === ETHER ? CurrencyAmount.ether(amounts[amounts.length - 1].raw) : amounts[amounts.length - 1];
     var isExsit = this.findToken(route.path[0].address);
-    console.log("\u662F\u5426\u627E\u5230 " + isExsit);
     this.nextMidPrice = Price.fromRoute(new Route(nextPairs, route.input));
-    console.log('____ Trade init');
-    console.log(JSBI.BigInt(0));
 
     if (isExsit) {
       this.executionPrice = new Price(this.inputAmount.currency, this.outputAmount.currency, JSBI.divide(JSBI.multiply(this.inputAmount.raw, JSBI.BigInt(9475)), JSBI.BigInt(10000)), this.outputAmount.raw);
-      console.log("\u8F93\u5165 " + JSBI.divide(JSBI.multiply(this.inputAmount.raw, JSBI.BigInt(9475)), JSBI.BigInt(10000)));
     } else {
       this.executionPrice = new Price(this.inputAmount.currency, this.outputAmount.currency, this.inputAmount.raw, this.outputAmount.raw);
     }
 
     this.priceImpact = computePriceImpact(route.midPrice, this.inputAmount, this.outputAmount);
-    console.log("priceImpact");
-    console.log(this.priceImpact);
   }
   /**
    * Constructs an exact in trade with the given amount in and route

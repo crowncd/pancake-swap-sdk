@@ -33,6 +33,7 @@ export declare class Pair {
     get token1(): Token;
     get reserve0(): TokenAmount;
     get reserve1(): TokenAmount;
+    private isBuy;
     reserveOf(token: Token): TokenAmount;
     getOutputAmount(inputAmount: TokenAmount): [TokenAmount, Pair];
     getInputAmount(outputAmount: TokenAmount): [TokenAmount, Pair];
