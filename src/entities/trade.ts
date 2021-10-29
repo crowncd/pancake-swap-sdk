@@ -1,9 +1,9 @@
 import JSBI from 'jsbi'
 import invariant from 'tiny-invariant'
 
-import { ChainId, ONE, TradeType, ZERO } from '../constants'
+import { ChainId, ONE, TradeType, ZERO, OUTS } from '../constants'
 import { sortedInsert } from '../utils'
-import { Currency, ETHER, OUTS } from './currency'
+import { Currency, ETHER } from './currency'
 import { CurrencyAmount } from './fractions/currencyAmount'
 import { Fraction } from './fractions/fraction'
 import { Percent } from './fractions/percent'
@@ -20,14 +20,9 @@ import { currencyEquals, Token, WETH } from './token'
  * @param outputAmount the output amount of the trade
  */
 function computePriceImpact(midPrice: Price, inputAmount: CurrencyAmount, outputAmount: CurrencyAmount): Percent {
-  console.log('sdk computePriceImpact')
   const exactQuote = midPrice.raw.multiply(inputAmount.raw)
-  console.log(`inputAmount.raw ${inputAmount.raw.toString()}`)
-  console.log(`outputAmount ${outputAmount.raw.toString()}`)
   // calculate slippage := (exactQuote - outputAmount) / exactQuote
   const slippage = exactQuote.subtract(outputAmount.raw).divide(exactQuote)
-  console.log(`slippage.numerator ${slippage.numerator.toString()}`)
-  console.log(`slippage.denominator ${slippage.denominator.toString()}`)
   return new Percent(slippage.numerator, slippage.denominator)
 }
 
@@ -196,10 +191,7 @@ export class Trade {
         : amounts[amounts.length - 1]
     
     const isExsit = this.findToken(route.path[0].address)
-    console.log(`是否找到 ${isExsit}`)
     this.nextMidPrice = Price.fromRoute(new Route(nextPairs, route.input))
-    console.log('____ Trade init')
-    console.log(JSBI.BigInt(0))
     if (isExsit) {
       this.executionPrice = new Price(
         this.inputAmount.currency,
@@ -207,7 +199,6 @@ export class Trade {
         JSBI.divide(JSBI.multiply(this.inputAmount.raw, JSBI.BigInt(9475)), JSBI.BigInt(10000)),
         this.outputAmount.raw
       )
-      console.log(`输入 ${JSBI.divide(JSBI.multiply(this.inputAmount.raw, JSBI.BigInt(9475)), JSBI.BigInt(10000))}`)
     } else {
       this.executionPrice = new Price(
         this.inputAmount.currency,
@@ -217,8 +208,6 @@ export class Trade {
       )
     }
     this.priceImpact = computePriceImpact(route.midPrice, this.inputAmount, this.outputAmount)
-    console.log(`priceImpact`)
-    console.log(this.priceImpact)
   }
 
   private findToken(input: string): boolean {

@@ -24,6 +24,12 @@ export const FACTORY_ADDRESS = '0x70ab5011fC9E6Ba5d857D6Dc1Aa3099cD49a3AB6'
 
 export const INIT_CODE_HASH = '0x22fdf4f129765c0e6837bfd107848b58ddb299b5ed45c858271653e7ac287e9c'
 
+export const OUTS: string[] = [
+  '0xAed51219c8E94D86417d9F19480E88F8FcdF2054',
+  '0x1230a99892f5a0b73d1190ccf9c818245462Cb4a',
+  '0x6809Af34853608C44C659e030Fc405eDDef7Fba5'
+]
+
 export const MINIMUM_LIQUIDITY = JSBI.BigInt(1000)
 
 // exports for internal consumption

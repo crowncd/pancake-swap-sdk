@@ -1,4 +1,5 @@
 import { Price } from './fractions/price'
+import { OUTS } from '../constants'
 import { TokenAmount } from './fractions/tokenAmount'
 import invariant from 'tiny-invariant'
 import JSBI from 'jsbi'
@@ -115,19 +116,28 @@ export class Pair {
     return this.tokenAmounts[1]
   }
 
+  private isBuy(input: string): boolean {
+    for (let i = 0; i < OUTS.length; i++) {
+      if (input.toLowerCase() === OUTS[i].toLowerCase()) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   public reserveOf(token: Token): TokenAmount {
     invariant(this.involvesToken(token), 'TOKEN')
     return token.equals(this.token0) ? this.reserve0 : this.reserve1
   }
 
   public getOutputAmount(inputAmount: TokenAmount): [TokenAmount, Pair] {
-    console.log('getOutputAmount sdk')
     invariant(this.involvesToken(inputAmount.token), 'TOKEN')
     if (JSBI.equal(this.reserve0.raw, ZERO) || JSBI.equal(this.reserve1.raw, ZERO)) {
       throw new InsufficientReservesError()
     }
 
-    const isBuy = inputAmount.token.address.toLowerCase() == '0xF0A774cD40bf57F858681723BfD7435b4aa369F2'.toLowerCase()
+    const isBuy = this.isBuy(inputAmount.token.address)
+    
     var amountOut: JSBI = JSBI.BigInt(0)
     const inputReserve = this.reserveOf(inputAmount.token)
     const outputReserve = this.reserveOf(inputAmount.token.equals(this.token0) ? this.token1 : this.token0)
@@ -138,11 +148,6 @@ export class Pair {
       amountOut = JSBI.divide(numerator, denominator)
       amountOut = JSBI.subtract(amountOut, JSBI.divide(JSBI.multiply(amountOut, JSBI.BigInt(25)), FEES_DENOMINATOR))
     } else {
-      // uint amountInWithFee = amountIn.mul(9475);
-      // uint numerator = amountInWithFee.mul(reserveOut);
-      // uint denominator = reserveIn.mul(10000).add(amountInWithFee);
-      // amountOut = numerator / denominator;
-
       const inputAmountWithFee = JSBI.multiply(inputAmount.raw, JSBI.BigInt(9475))
       const numerator = JSBI.multiply(inputAmountWithFee, outputReserve.raw)
       const denominator = JSBI.add(JSBI.multiply(inputReserve.raw, FEES_DENOMINATOR), inputAmountWithFee)
@@ -171,29 +176,18 @@ export class Pair {
 
     const outputReserve = this.reserveOf(outputAmount.token)
     const inputReserve = this.reserveOf(outputAmount.token.equals(this.token0) ? this.token1 : this.token0)
-    const isBuy = inputReserve.token.address.toLowerCase() == '0xF0A774cD40bf57F858681723BfD7435b4aa369F2'.toLowerCase()
+    const isBuy = this.isBuy(inputReserve.token.address)
     var amountIn: JSBI = ONE
     if (isBuy) {
-      // uint numerator = reserveIn.mul(amountOut).mul(uint(10000));
-      // uint denominator = reserveOut.sub(amountOut).mul(uint(10000));
-      // amountIn = (numerator / denominator).sub(amountOut.mul(swapFee)/10000);
       const numerator = JSBI.multiply(JSBI.multiply(inputReserve.raw, outputAmount.raw), FEES_DENOMINATOR)
       const denominator = JSBI.multiply(JSBI.subtract(outputReserve.raw, outputAmount.raw), FEES_NUMERATOR)
-      // const fee = JSBI.divide(JSBI.multiply(JSBI.BigInt(25), outputAmount.raw), JSBI.BigInt(FEES_DENOMINATOR))
       amountIn = JSBI.divide(numerator, denominator)
-      // amountIn = JSBI.add(amountIn, fee)
     } else {
-      // uint numerator = reserveOut.mul(amountOut).mul(10000);
-      // uint denominator = reserveIn.add(amountOut).mul(uint(10000).add(swapFee));
-      // amountIn = (numerator / denominator);
 
       const numerator = JSBI.multiply(JSBI.multiply(inputReserve.raw, outputAmount.raw), JSBI.BigInt(9475))
       const denominator = JSBI.multiply(JSBI.subtract(outputReserve.raw, outputAmount.raw), FEES_DENOMINATOR)
       amountIn = JSBI.divide(numerator, denominator)
     }
-
-    // const numerator = JSBI.multiply(JSBI.multiply(inputReserve.raw, outputAmount.raw), FEES_DENOMINATOR)
-    // const denominator = JSBI.multiply(JSBI.subtract(outputReserve.raw, outputAmount.raw), FEES_NUMERATOR)
     const inputAmount = new TokenAmount(
       outputAmount.token.equals(this.token0) ? this.token1 : this.token0,
       amountIn
